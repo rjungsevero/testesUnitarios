@@ -1,98 +1,110 @@
 package dominio;
 
+import builder.CriadorDeLeilao;
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 public class TesteLeilao {
+
+    private Usuario steve;
+    private Usuario bill;
+    private Leilao leilao;
+
+    @Before
+    public void setUp() {
+
+        this.steve = new Usuario("Steve Jobs");
+        this.bill = new Usuario("Bill Gates");
+        this.leilao = new Leilao("Macbook Pro 15");
+
+    }
 
     @Test
     public void testRealizaApenasUmLance() {
 
-        Leilao leilao = new Leilao("Macbook Pro 15");
+        leilao = new CriadorDeLeilao()
+                .para("Macbook Pro 15")
+                .lance(steve, 2000.0)
+                .constroi();
 
-        assertEquals(0, leilao.getLances().size());
-
-        Usuario steve = new Usuario("Steve Jobs");
-        leilao.propoe(new Lance(steve, 2000.0));
-
-        assertEquals(2000.0, leilao.getLances().get(0).getValor(), 0.00001);
+        assertThat(leilao.getLances(), hasItem(new Lance(steve, 2000.0)));
 
     }
 
     @Test
     public void testRealizaVariosLances() {
 
-        Leilao leilao = new Leilao("Macbook Pro 15");
-        leilao.propoe(new Lance(new Usuario("Steve Jobs"), 2000.0));
-        leilao.propoe(new Lance(new Usuario("Steve Wozniak"), 3000.0));
+        leilao = new CriadorDeLeilao()
+                .para("Macbook Pro 15")
+                .lance(steve, 2000.0)
+                .lance(bill, 3000.0)
+                .constroi();
 
-        assertEquals(2, leilao.getLances().size());
-        assertEquals(2000.0, leilao.getLances().get(0).getValor(), 0.00001);
-        assertEquals(3000.0, leilao.getLances().get(1).getValor(), 0.00001);
+        assertThat(leilao.getLances().size(), equalTo(2));
+        assertThat(leilao.getLances(), hasItems(new Lance(steve, 2000.0), new Lance(bill, 3000.0)));
 
     }
 
     @Test
     public void testNaoAceitaDoisLancesSeguidosDoMesmoUsuario() {
 
-        Leilao leilao = new Leilao("Macbook Pro 15");
-        Usuario steve = new Usuario("Steve Jobs");
+        leilao = new CriadorDeLeilao()
+                .para("Macbook Pro 15")
+                .lance(steve, 2000.0)
+                .lance(steve, 3000.0)
+                .constroi();
 
-        leilao.propoe(new Lance(steve, 2000.0));
-        leilao.propoe(new Lance(steve, 3000.0));
+        assertThat(leilao.getLances().size(), equalTo(1));
+        assertThat(leilao.getLances(), hasItem(new Lance(steve, 2000.0)));
 
-        assertEquals(1, leilao.getLances().size());
-        assertEquals(2000.0, leilao.getLances().get(0).getValor(), 0.00001);
     }
 
     @Test
     public void testNaoAceitaMaisQueCincoLancesPorUsuario() {
-        Leilao leilao = new Leilao("Macbook Pro 15");
-        Usuario steve = new Usuario("Steve Jobs");
-        Usuario bill = new Usuario("Bill Gates");
 
-        leilao.propoe(new Lance(steve, 2000.0));
-        leilao.propoe(new Lance(bill, 3000.0));
+        leilao = new CriadorDeLeilao()
+                .para("MacBook Pro 15")
+                .lance(steve, 2000.0)
+                .lance(bill, 3000.0)
+                .lance(steve, 4000.0)
+                .lance(bill, 5000.0)
+                .lance(steve, 6000.0)
+                .lance(bill, 7000.0)
+                .lance(steve, 8000.0)
+                .lance(bill, 9000.0)
+                .lance(steve, 10000.0)
+                .lance(bill, 11000.0)
+                .lance(steve, 12000.0)
+                .constroi();
 
-        leilao.propoe(new Lance(steve, 4000.0));
-        leilao.propoe(new Lance(bill, 5000.0));
+        assertThat(leilao.getLances().size(), equalTo(10));
+        assertThat(leilao.getLances().get(9).getValor(), equalTo(11000.0));
 
-        leilao.propoe(new Lance(steve, 6000.0));
-        leilao.propoe(new Lance(bill, 7000.0));
-
-        leilao.propoe(new Lance(steve, 8000.0));
-        leilao.propoe(new Lance(bill, 9000.0));
-
-        leilao.propoe(new Lance(steve, 10000.0));
-        leilao.propoe(new Lance(bill, 11000.0));
-
-        leilao.propoe(new Lance(steve, 12000.0));
-
-        assertEquals(10, leilao.getLances().size());
-        assertEquals(11000.0, leilao.getLances().get(9).getValor(), 0.00001);
     }
 
     @Test
     public void testDobraLanceDeUmUsuario() {
-        Leilao leilao = new Leilao("Macbook Pro 15");
-        Usuario steve = new Usuario("Steve Jobs");
-        Usuario bill = new Usuario("Bill Gastes");
 
-        leilao.propoe(new Lance(steve, 3000.0));
-        leilao.propoe(new Lance(bill, 4000.0));
+        leilao = new CriadorDeLeilao()
+                .para("MacBook Pro 15")
+                .lance(steve, 3000.0)
+                .lance(bill, 4000.0)
+                .constroi();
         leilao.dobraLance(steve);
 
-        assertEquals(6000.0, leilao.getLances().get(2).getValor(), 0.00001);
+        assertThat(leilao.getLances().get(2).getValor(), equalTo(6000.0));
 
     }
 
     @Test
     public void testNaoDobrarLanceCasoNaoHajaLanceAnterior() {
-        Leilao leilao = new Leilao("Macbook Pro 15");
-        Usuario steve = new Usuario("Steve Jobs");
 
         leilao.dobraLance(steve);
-        assertEquals(0, leilao.getLances().size());
+
+        assertThat(leilao.getLances().size(), equalTo(0));
+
     }
 }

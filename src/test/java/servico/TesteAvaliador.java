@@ -1,73 +1,87 @@
 package servico;
 
+import builder.CriadorDeLeilao;
 import dominio.Lance;
 import dominio.Leilao;
 import dominio.Usuario;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class TesteAvaliador {
 
+    private static Avaliador leiloeiro;
+    private static Usuario raul;
+    private static Usuario joao;
+    private static Usuario maria;
+
+    @BeforeClass
+    public static void setUp() {
+        leiloeiro = new Avaliador();
+        raul = new Usuario("Raul");
+        joao = new Usuario("Joao");
+        maria = new Usuario("Maria");
+    }
+
     @Test
     public void testAvaliaMaiorEMenorValor() {
-        Usuario raul = new Usuario("Raul");
-        Usuario joao = new Usuario("Joao");
-        Usuario maria = new Usuario("Maria");
 
-        Leilao leilaoPS3 = new Leilao("PS3");
+        Leilao leilao = new CriadorDeLeilao().para("PlayStation 3")
+                .lance(raul, 800.0)
+                .lance(joao, 700.0)
+                .lance(maria, 600.0)
+                .constroi();
 
-        leilaoPS3.propoe(new Lance(raul, 800.0));
-        leilaoPS3.propoe(new Lance(joao, 700.0));
-        leilaoPS3.propoe(new Lance(maria, 600.0));
+        leiloeiro.avalia(leilao);
 
-        Avaliador leiloeiro = new Avaliador();
-        leiloeiro.avalia(leilaoPS3);
-
-        assertEquals(800.0, leiloeiro.getMaiorValor(), 0.00001);
-        assertEquals(600.0, leiloeiro.getMenorValor(), 0.00001);
+        assertThat(leiloeiro.getMaiorValor(), equalTo(800.0));
+        assertThat(leiloeiro.getMenorValor(), equalTo(600.0));
 
     }
 
     @Test
     public void testMediaLancesPorLeilao() {
-        Usuario raul = new Usuario("Raul");
-        Usuario joao = new Usuario("Joao");
-        Usuario maria = new Usuario("Maria");
 
-        Leilao leilaoPS4 = new Leilao("PS4");
+        Leilao leilao = new CriadorDeLeilao().para("PlayStation 3")
+                .lance(raul, 700.0)
+                .lance(joao, 600.0)
+                .lance(maria, 800.0)
+                .constroi();
 
-        leilaoPS4.propoe(new Lance(raul, 700.0));
-        leilaoPS4.propoe(new Lance(joao, 600.0));
-        leilaoPS4.propoe(new Lance(maria, 800.0));
-
-        Avaliador leiloeiro = new Avaliador();
-
-        assertEquals(700.0, leiloeiro.valorMedio(leilaoPS4), 0.00001);
+        assertEquals(700.0, leiloeiro.valorMedio(leilao), 0.00001);
     }
 
     @Test
     public void testTresMaioresLances() {
-        Usuario raul = new Usuario("Raul");
-        Usuario joao = new Usuario("Joao");
-        Usuario maria = new Usuario("Maria");
 
-        Leilao leilao = new Leilao("PS5");
+        Leilao leilao = new CriadorDeLeilao().para("PlayStation 3")
+                .lance(raul, 700.0)
+                .lance(joao, 600.0)
+                .lance(maria, 800.0)
+                .lance(joao, 900.0)
+                .constroi();
 
-        leilao.propoe(new Lance(raul, 700.0));
-        leilao.propoe(new Lance(joao, 600.0));
-        leilao.propoe(new Lance(maria, 800.0));
-        leilao.propoe(new Lance(joao, 900.0));
-
-        Avaliador leiloeiro = new Avaliador();
         List<Lance> maiores = leiloeiro.tresMaioresLances(leilao);
 
         assertEquals(3, maiores.size());
-        assertEquals(leilao.getLances().get(3).getValor(), maiores.get(0).getValor(), 0.00001);
-        assertEquals(leilao.getLances().get(2).getValor(), maiores.get(1).getValor(), 0.00001);
-        assertEquals(leilao.getLances().get(0).getValor(), maiores.get(2).getValor(), 0.00001);
+        assertThat(maiores, hasItems(
+                new Lance(joao, 900.0),
+                new Lance(maria, 800.0),
+                new Lance(raul, 700.0)));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testLeilaoSemlances() {
+        Leilao leilao = new CriadorDeLeilao()
+                .para("PlayStation 3")
+                .constroi();
+        leiloeiro.avalia(leilao);
     }
 
 }
