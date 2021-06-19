@@ -18,14 +18,14 @@ public class TesteAvaliador {
 
     private static Avaliador leiloeiro;
     private static Usuario raul;
-    private static Usuario joao;
+    private static Usuario claudia;
     private static Usuario maria;
 
     @BeforeClass
     public static void setUp() {
         leiloeiro = new Avaliador();
         raul = new Usuario("Raul");
-        joao = new Usuario("Joao");
+        claudia = new Usuario("Claudia");
         maria = new Usuario("Maria");
     }
 
@@ -34,7 +34,7 @@ public class TesteAvaliador {
 
         Leilao leilao = new CriadorDeLeilao().para("PlayStation 3")
                 .lance(raul, 800.0)
-                .lance(joao, 700.0)
+                .lance(claudia, 700.0)
                 .lance(maria, 600.0)
                 .constroi();
 
@@ -50,7 +50,7 @@ public class TesteAvaliador {
 
         Leilao leilao = new CriadorDeLeilao().para("PlayStation 3")
                 .lance(raul, 700.0)
-                .lance(joao, 600.0)
+                .lance(claudia, 600.0)
                 .lance(maria, 800.0)
                 .constroi();
 
@@ -62,16 +62,16 @@ public class TesteAvaliador {
 
         Leilao leilao = new CriadorDeLeilao().para("PlayStation 3")
                 .lance(raul, 700.0)
-                .lance(joao, 600.0)
+                .lance(claudia, 600.0)
                 .lance(maria, 800.0)
-                .lance(joao, 900.0)
+                .lance(claudia, 900.0)
                 .constroi();
 
         List<Lance> maiores = leiloeiro.tresMaioresLances(leilao);
 
         assertEquals(3, maiores.size());
         assertThat(maiores, hasItems(
-                new Lance(joao, 900.0),
+                new Lance(claudia, 900.0),
                 new Lance(maria, 800.0),
                 new Lance(raul, 700.0)));
     }
