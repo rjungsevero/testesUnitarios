@@ -25,7 +25,7 @@ public class TesteAvaliador {
     public static void setUp() {
         leiloeiro = new Avaliador();
         raul = new Usuario("Raul");
-        claudia = new Usuario("Claudia");
+        claudia = new Usuario("Claudi");
         maria = new Usuario("Maria");
     }
 
